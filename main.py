@@ -1,51 +1,76 @@
-from graphviz import Source
-
-
-class Edge:
-    start = -1
-    end = -1
-    flow = 0
-
-    def __init__(self, start, end, value):
-        self.start = start
-        self.end = end
-        self.flow = value
-
-class Node:
-    name = -1
-    options = []
-    negOptions = []
-
-    def __init__(self, name, edges):
-        self.name = name
-               
-
-    def add(self, value, end):
-        for i in edges:
-            options.append({
-                "pointsTo" : edges[i],
-                "value" : edges[i].value
-            }) 
-        self.negOptions()
-
-def search(index, nodes, lastNode, path):
-        if index == lastNode:
-            return path
-        
-
+import networkx as nx
 
 
 edges = []
 lastNode = 0
 nodes = []
 
+graph = nx.DiGraph()
 
-for i in range()
-with open("train.txt") as f:
+def search(graph, start, end):
+    flow = 0
+    path = True
+    
+    while path:
+        # search for path with flow reserve
+        path, reserve = depth_first_search(graph, start, end)
+        flow += reserve
+        for v, u in zip(path, path[1:]):
+            if graph.has_edge(v, u):
+                graph[v][u]['flow'] += reserve
+            else:
+                graph[u][v]['flow'] -= reserve
+        
+        print('flow increased by', reserve, 
+          'at path', path,
+          '; current flow', flow)
+
+def depth_first_search(graph, source, sink):
+    undirected = graph.to_undirected()
+    explored = {source}
+    stack = [(source, 0, dict(undirected[source]))]
+    
+    while stack:
+        v, _, neighbours = stack[-1]
+        if v == sink:
+            break
+        
+        # search the next neighbour
+        while neighbours:
+            u, e = neighbours.popitem()
+            if u not in explored:
+                break
+        else:
+            stack.pop()
+            continue
+        
+        # current flow and capacity
+        in_direction = graph.has_edge(v, u)
+        capacity = e['capacity']
+        flow = e['flow']
+        neighbours = dict(undirected[u])
+
+        # increase or redirect flow at the edge
+        if in_direction and flow < capacity:
+            stack.append((u, capacity - flow, neighbours))
+            explored.add(u)
+        elif not in_direction and flow:
+            stack.append((u, flow, neighbours))
+            explored.add(u)
+
+    # (source, sink) path and its flow reserve
+    reserve = min((f for _, f, _ in stack[1:]), default=0)
+    path = [v for v, _, _ in stack]
+    
+    return path, reserve
+
+
+
+
+with open("trainReal.txt") as f:
     lines = f.readlines()
     for line in lines:
         if "digraph {" not in line and "}" not in line:
-            print(line)
             line = line.strip()
             i = 0
             fname = ""
@@ -66,19 +91,20 @@ with open("train.txt") as f:
                 i += 1
             
 
-            print(fname)
+            '''print(fname)
             print(sname)
-            print(value)
+            print(value)'''
 
+            fname = int(fname)
+            sname = int(sname)
+            value = int(value)
             if(int(fname) > lastNode):
                 lastNode = int(fname)
             if(int(sname) > lastNode):
                 lastNode = int(sname)
             
-            if fname not in knownNodes:
-                
-            else:
-                nodes[]
+            
+            graph.add_edge(fname, sname, capacity = value, flow = 0)
+print(lastNode)
+search(graph, 0, lastNode)
 
-            edge = Edge(int(fname), int(sname), int(value))
-            nodes.append(Node(int(fname), edge))
