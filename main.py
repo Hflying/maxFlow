@@ -13,15 +13,20 @@ class Edge:
 
 class Node:
     name = -1
-    edges = []
+    options = []
+    negOptions = []
 
-    def __init__(self, name, edge):
+    def __init__(self, name, edges):
         self.name = name
-        self.edges.append(edge)
+               
 
     def add(self, value, end):
-        self.edges.append()
-
+        for i in edges:
+            options.append({
+                "pointsTo" : edges[i],
+                "value" : edges[i].value
+            }) 
+        self.negOptions()
 
 def search(index, nodes, lastNode, path):
         if index == lastNode:
@@ -33,6 +38,9 @@ def search(index, nodes, lastNode, path):
 edges = []
 lastNode = 0
 nodes = []
+
+
+for i in range()
 with open("train.txt") as f:
     lines = f.readlines()
     for line in lines:
@@ -66,5 +74,11 @@ with open("train.txt") as f:
                 lastNode = int(fname)
             if(int(sname) > lastNode):
                 lastNode = int(sname)
+            
+            if fname not in knownNodes:
+                
+            else:
+                nodes[]
+
             edge = Edge(int(fname), int(sname), int(value))
             nodes.append(Node(int(fname), edge))
