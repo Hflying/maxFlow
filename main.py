@@ -11,24 +11,57 @@ def search(graph, start, end):
     flow = 0
     path = True
     
+    path = bfs_paths(graph, start, end)
+
     while path:
         # search for path with flow reserve
-        path, reserve = depth_first_search(graph, start, end)
-        flow += reserve
-        for v, u in zip(path, path[1:]):
+        path, reserve = bfs_paths(graph, start, end)
+        print(path)
+        flow += reserve 
+        '''for v, u in zip(path, path[1:]):
             if graph.has_edge(v, u):
                 graph[v][u]['flow'] += reserve
             else:
-                graph[u][v]['flow'] -= reserve
+                graph[u][v]['flow'] -= reserve'''
+        for i in range(0,len(path)-1):
+            graph[i][path[i+1]]["flow"] += flow
         
         print('flow increased by', reserve, 
           'at path', path,
           '; current flow', flow)
 
+
+def bfs_paths(graph, start, goal):
+    visited = []
+    stack = []
+    flow = 10000
+    stack.append(start)
+    while(stack):
+        current = stack.pop(0)
+
+        if (current not in visited):
+            visited.append(current)
+            
+            for i in graph[current]:
+                if(graph[current][i]['flow'] < graph[current][i]['capacity']):
+                    
+                    if(graph[current][i]['capacity'] < flow):
+                        flow = graph[current][i]['capacity']
+                    if(i == goal):
+                        visited.append(i)
+                        return visited, flow
+                    if(i not in visited):
+                        stack.append(i)
+                else: 
+                    
+    return []
+
+
 def depth_first_search(graph, source, sink):
     undirected = graph.to_undirected()
     explored = {source}
     stack = [(source, 0, dict(undirected[source]))]
+    print(stack)
     
     while stack:
         v, _, neighbours = stack[-1]
@@ -67,7 +100,7 @@ def depth_first_search(graph, source, sink):
 
 
 
-with open("trainReal.txt") as f:
+with open("train.txt") as f:
     lines = f.readlines()
     for line in lines:
         if "digraph {" not in line and "}" not in line:
