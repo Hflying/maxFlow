@@ -7,100 +7,94 @@ nodes = []
 
 graph = nx.DiGraph()
 
-def search(graph, start, end):
-    flow = 0
-    path = True
-    
-    path = bfs_paths(graph, start, end)
 
+
+def search(graph, source, sink):
+    flow, path = 0, True
+    
     while path:
         # search for path with flow reserve
-        path, reserve = bfs_paths(graph, start, end)
-        print(path)
-        flow += reserve 
-        '''for v, u in zip(path, path[1:]):
+        path, reserve = bfs_paths(graph, source, sink)
+        flow += reserve
+        # increase flow along the path
+        for v, u in zip(path, path[1:]):
             if graph.has_edge(v, u):
                 graph[v][u]['flow'] += reserve
             else:
-                graph[u][v]['flow'] -= reserve'''
-        for i in range(0,len(path)-1):
-            graph[i][path[i+1]]["flow"] += flow
-        
+                graph[u][v]['flow'] -= reserve
         print('flow increased by', reserve, 
           'at path', path,
           '; current flow', flow)
+    return graph
+        
 
 
 def bfs_paths(graph, start, goal):
-    visited = []
-    stack = []
-    flow = 10000
-    stack.append(start)
-    while(stack):
-        current = stack.pop(0)
+    visited = {start}
+    stack = [(start, 0, dict(graph[start]))]
 
-        if (current not in visited):
-            visited.append(current)
-            
-            for i in graph[current]:
-                if(graph[current][i]['flow'] < graph[current][i]['capacity']):
-                    
-                    if(graph[current][i]['capacity'] < flow):
-                        flow = graph[current][i]['capacity']
-                    if(i == goal):
-                        visited.append(i)
-                        return visited, flow
-                    if(i not in visited):
-                        stack.append(i)
-                else: 
-                    
-    return []
-
-
-def depth_first_search(graph, source, sink):
-    undirected = graph.to_undirected()
-    explored = {source}
-    stack = [(source, 0, dict(undirected[source]))]
-    print(stack)
-    
     while stack:
-        v, _, neighbours = stack[-1]
-        if v == sink:
+        node, additionalFlow, neighbours = stack[-1]
+
+        if node == goal:
             break
-        
-        # search the next neighbour
+
         while neighbours:
-            u, e = neighbours.popitem()
-            if u not in explored:
+            nextNode, info = neighbours.popitem()
+
+            if nextNode not in visited:
                 break
+
         else:
             stack.pop()
             continue
         
-        # current flow and capacity
-        in_direction = graph.has_edge(v, u)
-        capacity = e['capacity']
-        flow = e['flow']
-        neighbours = dict(undirected[u])
+        edge = graph.has_edge(node, nextNode)
+        flow = info['flow']
+        cap = info['capacity']
+        neighbours = dict(graph[nextNode])
 
-        # increase or redirect flow at the edge
-        if in_direction and flow < capacity:
-            stack.append((u, capacity - flow, neighbours))
-            explored.add(u)
-        elif not in_direction and flow:
-            stack.append((u, flow, neighbours))
-            explored.add(u)
+        if edge and flow < cap:
+            stack.append((nextNode, cap - flow, neighbours))
+            visited.add(nextNode)
+        elif not edge and flow:
+            stack.append(nextNode, flow, neighbours)
+            visited.add(nextNode)
+        
 
     # (source, sink) path and its flow reserve
-    reserve = min((f for _, f, _ in stack[1:]), default=0)
-    path = [v for v, _, _ in stack]
+    reserve = min((f for additionalFlow, f, additionalFlow in stack[1:]), default=0)
+    path = [node for node, additionalFlow, additionalFlow in stack]
     
     return path, reserve
 
 
+def esayDFS(graph, start):
+
+    stack = [start]
+    visited = []
+    f = open("outPut.txt" , 'w')
+    f.write("digraph {\n")
+    
+    while stack:
+        current = stack.pop()
+
+        if(current not in visited):
+            visited.append(current)
+            for others in graph[current]:
+                f.write("\t" + str(current) + " -> " + str(others) + " [label='" + str(graph[current][others]['flow']) + "'];\n")
+                if(others not in visited):
+                    stack.append(others)
+    f.write("}\n")
+    f.close()
+                
 
 
-with open("train.txt") as f:
+    
+
+
+
+with open("trainReal.txt") as f:
     lines = f.readlines()
     for line in lines:
         if "digraph {" not in line and "}" not in line:
@@ -136,8 +130,8 @@ with open("train.txt") as f:
             if(int(sname) > lastNode):
                 lastNode = int(sname)
             
-            
             graph.add_edge(fname, sname, capacity = value, flow = 0)
-print(lastNode)
-search(graph, 0, lastNode)
+graph = search(graph, 0, lastNode)
+esayDFS(graph, 0)
+
 
