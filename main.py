@@ -1,13 +1,10 @@
 import networkx as nx
-from networkx.algorithms.flow import shortest_augmenting_path
-
 
 edges = []
 lastNode = 0
 nodes = []
 
 graph = nx.DiGraph()
-
 
 
 def search(graph, source, sink):
@@ -22,9 +19,10 @@ def search(graph, source, sink):
             if graph.has_edge(v, u):
                 graph[v][u]['flow'] += moreFlow
 
-        print('flow increased by', moreFlow, 
-          #'at path', path,
-          '; current flow', flow)
+        print("flow increased by " + str(moreFlow) + ": current flow " + str(flow))
+
+    print("\n")
+    print("The max Flow is " + str(flow))
     return graph, flow
         
 
@@ -62,7 +60,6 @@ def bfs_paths(graph, start, goal):
             visited.add(nextNode)
         
 
-    #(source, sink) path and its flow moreFlow
     if(stack):
         for i in stack[1:]:
             moreFlow = i[1]
@@ -73,8 +70,6 @@ def bfs_paths(graph, start, goal):
         path = []
         for additionalFlow in stack:
             path.append(additionalFlow[0])
-        #moreFlow = min((f for additionalFlow, f, additionalFlow in stack[1:]), default=0)
-        #path = [node for node, additionalFlow, additionalFlow in stack]
 
         return path, moreFlow
     else:
@@ -100,15 +95,43 @@ def esayDFS(graph, start):
     f.write("}\n")
     f.close()
                 
+def getCut(graph, start):
+    g = graph.copy()
+
+    stack = [start]
+    visited = []
+    
+    while stack:
+        current = stack.pop()
+
+        if(current not in visited):
+            visited.append(current)
+            for others in g[current]:
+                if(g[current][others]['flow'] == g[current][others]['capacity']):
+                    continue
+                else:
+                    if(others not in visited):
+                        stack.append(others)
+    
+    #print(visited)
+    return visited
+
+def minCut(graph, start, lastNode):
+    cut = 0
+    fromStart = getCut(graph, 0)
+    fromEnd = getCut(graph, lastNode)
+    for i in fromStart:
+        for x in fromEnd:
+            if(graph.has_edge(i, x) and i != x and x in fromEnd):
+                cut +=  graph[i][x]['capacity']
+
+    print("The min cut is " + str(cut))
 
 
-def minCut(graph):
-    cut_value = nx.minimum_cut(graph, 0, 3, flow_func=shortest_augmenting_path)[0]
-    print("The Min cut is " + str(cut_value))
-    return cut_value
 
 
-with open("train.txt") as f:
+
+with open("trainReal.txt") as f:
     lines = f.readlines()
     for line in lines:
         if "digraph {" not in line and "}" not in line:
@@ -131,11 +154,6 @@ with open("train.txt") as f:
                 value += line[i]
                 i += 1
             
-
-            '''print(fname)
-            print(sname)
-            print(value)'''
-
             fname = int(fname)
             sname = int(sname)
             value = int(value)
@@ -145,12 +163,10 @@ with open("train.txt") as f:
                 lastNode = int(sname)
             
             graph.add_edge(fname, sname, capacity = value, flow = 0)
+
 graph, flow = search(graph, 0, lastNode)
-cut_value = minCut(graph)
-if(cut_value == flow):
-    print("The max flow is 30")
-else:
-    print(str(cut_value) + " " + str(flow))
+minCut(graph, 0, lastNode)
+
 esayDFS(graph, 0)
 
 
